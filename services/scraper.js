@@ -5,7 +5,7 @@ const tik = require('rahad-media-downloader');
  * 
  * @param {string} url 
  * @returns {Promise<{
- *                  url: string
+ *             url: string
  *              audioInfo: string
  *              info: {
  *              play_count: string

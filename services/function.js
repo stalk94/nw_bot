@@ -7,6 +7,11 @@ const https = require('https');
 const logStream = fs.createWriteStream('console.log', { flags: 'a' });
 const TEMP_PATH = path.join(__dirname, '/temp/1.mp4');
 
+
+exports.isValidUrl =(str)=> {
+    const pattern = /^(https?:\/\/)?([\w\d-]+\.)+[a-z]{2,}(:\d+)?(\/[^\s]*)?$/i;
+    return pattern.test(str);
+}
 /**
  * 
  * @param {number} timestamp 
@@ -31,7 +36,7 @@ exports.convertTime =(timestamp, format)=> {
     else return formattedDate;
 }
 // лог в файл
-console.log = function(...messages) {
+console.log =(...messages)=> {
     function formatMessage(message) {
         if (typeof message === 'object') {
             try {
@@ -46,19 +51,42 @@ console.log = function(...messages) {
     const time = exports.convertTime(Date.now(), 'TD');
     const formatTime = `${time.date} [${time.time}]`;
     const formattedMessages = messages.map(formatMessage).join(' ');
-    const format = `${formatTime} : ${formattedMessages}\n`
+    const format = `✔️ ${formatTime} : ${formattedMessages}\n`
+
+    logStream.write(format);
+    process.stdout.write(format);
+}
+console.error =(...messages)=> {
+    function formatMessage(message) {
+        if(typeof message === 'object') {
+            try {
+                return JSON.stringify(message, null, 2); // Красивый JSON
+            } catch (err) {
+                return '[Circular]'; // Обработка циклических ссылок
+            }
+        }
+        return String(message);
+    }
+
+    const time = exports.convertTime(Date.now(), 'TD');
+    const formatTime = `${time.date} [${time.time}]`;
+    const formattedMessages = messages.map(formatMessage).join(' ');
+    const format = `❗ ${formatTime} : ${formattedMessages}\n`
 
     logStream.write(format);
     process.stdout.write(format);
 }
 
-
-
+/**
+ * Выгребает в локальное пространство удаленный файл видео
+ * @param {string} url ссылка на видео к примеру на tik-tok видео готовое к загрузке
+ * @returns {Promise<null, {error:Error}>}
+ */
 exports.downloadFile =async(url)=> {
     async function checkRedirect() {
         try {
             const response = await axios.get(url, {
-                maxRedirects: 0, // Запрещаем следование за редиректами
+                maxRedirects: 0,                // Запрещаем следование за редиректами
                 validateStatus: (status)=> status >= 200 && status < 400,
             });
     

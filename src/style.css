@@ -1,0 +1,28 @@
+* {
+    height: 100%; /* 100% от высоты экрана */
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    padding: 10px;
+    background: rgba(33, 33, 33, .9);
+}
+.root {
+    display: flex;
+    flex-direction: row;
+}
+
+.Left {
+    border-radius: 5px;
+    width: 50%;
+    background: #01010157;
+}
+.Right {
+    border-radius: 5px;
+    margin-left: 1%;
+    width: 50%;
+    background: #01010157;
+}

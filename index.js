@@ -3,19 +3,20 @@ const path = require('path');
 const cors = require("cors");
 const express = require('express');
 const http = require('http');
+const initBot = require('./server/telegram');
 
 
 const app = express();
+const bot = initBot(process.env.TELEGRAM);
 const server = http.createServer(app);
-app.use(cors({origin:"http://localhost:3001"}));
+//app.use(cors({origin:"http://localhost:3001"}));
 app.use(express.urlencoded({limit: '100mb'}));
 app.use(express.json({limit: '1mb'}));
 
 
 app.get("/", (req, res)=> {
-    res.sendFile(__dirname+'/dist/index.html');
+    res.sendFile(__dirname + '/dist/index.html');
 });
-
 
 
 
