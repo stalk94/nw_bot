@@ -54,7 +54,7 @@ exports.parseCockie = async function() {
  * @param {string} videoPath путь на загрузку видео (удаленный)
  * @param {string} label копирайт на видео
  * @param {string} textGpt Описание для видео, от GPT
- * @param {string} caller 
+ * @param {(txt:string, error:any)=> void} caller регистратор
  */
 exports.botLoader = async function(urlVideo, label, textGpt, caller) {
     var cookies = JSON.parse(fs.readFileSync(COOCKIE_PATH, 'utf-8'));
@@ -87,7 +87,8 @@ exports.botLoader = async function(urlVideo, label, textGpt, caller) {
             if(typeof resultMirror === 'string') {
                 // Загрузить видео
                 const fileInput = await page.$('input[type="file"]');
-                await fileInput.uploadFile(resultMirror);
+                if(fileInput) await fileInput.uploadFile(resultMirror);
+                else caller('❌💀 Cбой!!!', 'Сбой. Не найден инпут загрузки видео.');
 
                 // Ждем появления поля для ввода описания
                 await page.waitForSelector('div[contenteditable="true"]');
@@ -108,20 +109,21 @@ exports.botLoader = async function(urlVideo, label, textGpt, caller) {
 
                 // Нажимаем кнопку публикации
                 await postButton.click({ delay: 120 });
+                caller('🎉 Видео опубликовано. И обрабатывается tik-tok.(3 min bot panding)')
 
                 // ? нужна логика для закрытия puppeter
-                setTimeout(()=> browser.close(), 3 * (60*1000));
+                setTimeout(()=> {browser.close(); caller('🤖 Browser bot close');}, 3 * (60*1000));
             } 
             else {
                 if(resultDownload.error) {
-                    caller({
-                        label: 'error load or mirror',
+                    caller('❌ Сбой загрузчика видео', {
+                        label: 'error loader',
                         ...resultDownload.error
                     });
                 }
                 if(resultMirror.error) {
-                    caller({
-                        label: 'error load or mirror',
+                    caller('❌ Сбой при редактировании видео', {
+                        label: 'error mirror',
                         ...resultMirror.error
                     });
                 }
@@ -130,8 +132,7 @@ exports.botLoader = async function(urlVideo, label, textGpt, caller) {
             }
         } 
         catch (error) {
-            console.error('Error posting video:', error);
-            caller({
+            caller('❌💀 Cбой!!!', {
                 label: 'Error',
                 text: 'Произошла ошибка при загрузке видео.',
                 error: error.message
@@ -141,9 +142,9 @@ exports.botLoader = async function(urlVideo, label, textGpt, caller) {
     } 
     else {
         // Ошибка с куки
-        caller({
+        caller('❌ Cбой авторизации. Надо пройти авторизацию.', {
             label: 'Coockie error',
-            text: 'Куки повреждены либо не актуальны'
+            text: 'Нет куки в хранилище!!!'
         });
         await browser.close();
     }

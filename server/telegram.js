@@ -39,12 +39,13 @@ module.exports =(token)=> {
             const resultScrape = await scrapeVideo(text);           // текст от бота
 
             if(resultScrape !== 'TypeError' && resultScrape.url) {
-                bot.sendMessage(chatId, `Видео извлечено. Передано на постинг`);
+                bot.sendMessage(chatId, `🎥 Видео извлечено. Передано боту`);
                 const responcesGptText = await getChatGPTResponse(CONFIG.textPrompt);
                 
                 if(typeof(responcesGptText)==='string') {
-                    await botLoader(resultScrape.url, CONFIG.textCooper, responcesGptText, (data)=> {
-                        console.log(data);
+                    await botLoader(resultScrape.url, CONFIG.textCooper, responcesGptText, (txt, error)=> {
+                        if(error) console.error(error);
+                        if(txt) bot.sendMessage(chatId, txt);
                     });
                 }
             }
