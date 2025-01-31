@@ -3,7 +3,7 @@ const fs = require('fs');
 const { scrapeVideo } = require('../services/scraper');
 const { botLoader, parseCockie } = require('../services/bot-loader');
 const { getChatGPTResponse } = require('../services/gpt');
-const { isValidUrl } = require('../services/function');
+const { isValidUrl, convertTime } = require('../services/function');
 const TelegramBot = require('node-telegram-bot-api');
 const cfg = JSON.parse(fs.readFileSync('./config/tik-tok.json', {encoding:"utf-8"}));
 
@@ -27,12 +27,14 @@ globalThis.CONFIG = {
 module.exports =(token)=> {
     const bot = new TelegramBot(token, {polling: true});
     console.log('🤖 bot create!');
+    process.emit('bot', `${convertTime(Date.now(), 'TD')}: 🤖 bot create!`);
 
     // Обработчик новых сообщений
     bot.on('message', async(msg)=> {
         const chatId = msg.chat.id;
         const text = msg.text;
         console.log(`📩 Новое сообщение от ${chatId}: ${text}`);
+        process.emit('bot', `${convertTime(Date.now(), 'TD')}: 📩 Новое сообщение от ${chatId}: ${text}`);
 
         if(isValidUrl(text)) {
             bot.sendMessage(chatId, `Принято в работу`);
@@ -40,12 +42,16 @@ module.exports =(token)=> {
 
             if(resultScrape !== 'TypeError' && resultScrape.url) {
                 bot.sendMessage(chatId, `🎥 Видео извлечено. Передано боту`);
+                process.emit('bot', `${convertTime(Date.now(), 'TD')}: 🎥 Видео извлечено. Передано боту`);
                 const responcesGptText = await getChatGPTResponse(CONFIG.textPrompt);
                 
                 if(typeof(responcesGptText)==='string') {
                     await botLoader(resultScrape.url, CONFIG.textCooper, responcesGptText, (txt, error)=> {
                         if(error) console.error(error);
-                        if(txt) bot.sendMessage(chatId, txt);
+                        if(txt) {
+                            process.emit('bot', `${convertTime(Date.now(), 'TD')}: ${txt}`);
+                            bot.sendMessage(chatId, txt);
+                        }
                     });
                 }
             }
@@ -53,7 +59,8 @@ module.exports =(token)=> {
         }
         else {
             console.error('Не верно указана ссылка');
-            bot.sendMessage(chatId, `Не верно указана ссылка`);
+            process.emit('bot', `${convertTime(Date.now(), 'TD')}: ❌ Не верно указана ссылка`);
+            bot.sendMessage(chatId, `❌ Не верно указана ссылка`);
         }
     });
 

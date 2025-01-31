@@ -6,3 +6,6 @@ package-lock.json
 /src/img/
 /src/upload/
 roadmap.md
+console.log
+/services/temp/
+/config/
